@@ -3,6 +3,7 @@ import { env } from "./config.js";
 import { commands } from "./commands.js";
 
 const rest = new REST().setToken(env.DISCORD_TOKEN);
+if (!env.DISCORD_CLIENT_ID) throw new Error("Для регистрации команд задайте DISCORD_CLIENT_ID (Application ID из Discord Developer Portal).");
 if (env.DISCORD_GUILD_ID) {
   await rest.put(Routes.applicationGuildCommands(env.DISCORD_CLIENT_ID, env.DISCORD_GUILD_ID), { body: commands });
   console.log(`Команды зарегистрированы на сервере ${env.DISCORD_GUILD_ID}.`);

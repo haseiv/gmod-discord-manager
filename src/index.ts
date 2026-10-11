@@ -22,12 +22,13 @@ registerSecurity(client, store);
 registerVoiceSystem(client, store);
 client.once("ready", ready => console.log(`Discord: ${ready.user.tag} (${ready.guilds.cache.size} серверов)`));
 
-const api = startApi(store, env.HTTP_PORT, env.GMOD_API_SECRET);
+const api = env.GMOD_API_SECRET ? startApi(store, env.HTTP_PORT, env.GMOD_API_SECRET) : undefined;
+if (!api) console.warn("GMOD_API_SECRET не задан: API статистики Garry's Mod отключён.");
 await client.login(env.DISCORD_TOKEN);
 
 async function shutdown(signal: string) {
   console.log(`${signal}: завершение работы`);
-  api.close(); client.destroy(); process.exit(0);
+  api?.close(); client.destroy(); process.exit(0);
 }
 process.once("SIGINT", () => void shutdown("SIGINT"));
 process.once("SIGTERM", () => void shutdown("SIGTERM"));
