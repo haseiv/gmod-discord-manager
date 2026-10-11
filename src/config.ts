@@ -10,4 +10,4 @@ const schema = z.object({
   DATA_DIR: z.string().default("./data")
 });
 
-export const env = schema.parse(process.env);
+export const env = schema.parse({ ...process.env, HTTP_PORT: process.env.HTTP_PORT ?? process.env.PORT });
