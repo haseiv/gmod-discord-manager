@@ -24,6 +24,15 @@
 
 ## Быстрый запуск
 
+Выберите для приложения **Node.js 22**, а не Python. Главный файл после сборки — `dist/index.js`; файлы `src/*.ts` нельзя запускать через Python. В панели хостинга укажите:
+
+```text
+Build: npm ci && npm run build
+Start: npm start
+```
+
+Команды Discord регистрируются отдельно: `npm run deploy` (после заполнения переменных окружения). Если хостинг поддерживает Docker, используйте `Dockerfile` или `compose.yml`: в образе уже указан запуск через Node.js.
+
 ```powershell
 Copy-Item .env.example .env
 npm install
