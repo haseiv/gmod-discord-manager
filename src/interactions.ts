@@ -142,8 +142,9 @@ async function createTicket(i: StringSelectMenuInteraction<"cached">, store: Jso
   const key = i.values[0];
   if (!key || !isTicketKey(key)) throw new Error("Неизвестный тип тикета.");
   const cfg = store.guild(i.guildId); const type = cfg.ticketTypes[key];
+  await i.update(ticketPanel(cfg));
   const existing = Object.entries(store.snapshot().openTickets).find(([, t]) => t.ownerId === i.user.id && t.type === key);
-  if (existing) return void await i.reply({ content: `У вас уже открыт такой тикет: <#${existing[0]}>.`, ...privateReply });
+  if (existing) return void await i.followUp({ content: `У вас уже открыт такой тикет: <#${existing[0]}>.`, ...privateReply });
   const safeName = i.user.username.toLowerCase().replace(/[^a-z0-9а-яё-]/gi, "-").slice(0, 40);
   const overwrites = [
     { id: i.guild.roles.everyone.id, deny: [PermissionFlagsBits.ViewChannel] },
@@ -157,7 +158,7 @@ async function createTicket(i: StringSelectMenuInteraction<"cached">, store: Jso
   });
   await store.mutate(db => { db.openTickets[channel.id] = { ownerId: i.user.id, type: key, createdAt: new Date().toISOString() }; });
   await channel.send({ content: `${i.user}${type.supportRoleId ? ` <@&${type.supportRoleId}>` : ""}`, allowedMentions: { users: [i.user.id], roles: type.supportRoleId ? [type.supportRoleId] : [] }, embeds: [new EmbedBuilder().setColor(0x5865f2).setTitle(type.label).setDescription("Опишите ситуацию подробно и приложите доказательства. Сотрудник ответит здесь.")], components: [ticketControls()] });
-  await i.reply({ content: `Тикет создан: ${channel}.`, ...privateReply });
+  await i.followUp({ content: `Тикет создан: ${channel}.`, ...privateReply });
 }
 
 async function button(i: ButtonInteraction<"cached">, store: JsonStore) {
