@@ -7,6 +7,7 @@ import { JsonStore, isTicketKey } from "./store.js";
 import { reportControls, ticketControls, ticketPanel } from "./ui.js";
 import { voicePanel } from "./voice.js";
 import { staffEmbed } from "./staff.js";
+import { setupGmodServer } from "./serverSetup.js";
 
 const privateReply = { flags: MessageFlags.Ephemeral } as const;
 
@@ -32,6 +33,13 @@ export function registerInteractions(client: Client, store: JsonStore) {
 async function chatCommand(i: ChatInputCommandInteraction<"cached">, store: JsonStore) {
   const sub = i.options.getSubcommand(false);
   const cfg = store.guild(i.guildId);
+  if (i.commandName === "server" && sub === "setup") {
+    if (!i.memberPermissions?.has(PermissionFlagsBits.Administrator)) throw new Error("Нужны права администратора.");
+    await i.deferReply(privateReply);
+    const summary = await setupGmodServer(i.guild, store);
+    await i.editReply(summary);
+    return;
+  }
   if (i.commandName === "panel") {
     const panel = i.options.getString("panel", true);
     const channel = i.options.getChannel("channel", true);
@@ -58,7 +66,7 @@ async function chatCommand(i: ChatInputCommandInteraction<"cached">, store: Json
       t.supportRoleId = i.options.getRole("support_role")?.id ?? t.supportRoleId;
       t.enabled = i.options.getBoolean("enabled") ?? t.enabled;
       await store.mutate(db => { db.guilds[i.guildId] = cfg; });
-      await i.reply({ content: `Тип «${t.label}» обновлён. Повторно выполните /tickets deploy, чтобы обновить панель.`, ...privateReply });
+      await i.reply({ content: `Тип «${t.label}» обновлён. Повторно выполните /panel deploy, чтобы обновить панель.`, ...privateReply });
     } else if (sub === "close") {
       await closeTicket(i.channelId, i.user.id, i.options.getString("reason") ?? "Без причины", store, i);
     }

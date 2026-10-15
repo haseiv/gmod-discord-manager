@@ -6,6 +6,11 @@ const managerOnly = PermissionFlagsBits.ManageGuild;
 
 export const commands = [
   new SlashCommandBuilder()
+    .setName("server").setDescription("Создать структуру Discord-сервера Garry's Mod")
+    .addSubcommand(s => s.setName("setup").setDescription("Создать роли и каналы DarkRP по шаблону"))
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+
+  new SlashCommandBuilder()
     .setName("tickets").setDescription("Управление тикетами")
     .addSubcommand(s => s.setName("type").setDescription("Настроить тип тикета")
       .addStringOption(o => o.setName("key").setDescription("Тип").setRequired(true).addChoices(
