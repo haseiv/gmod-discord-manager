@@ -1,4 +1,4 @@
-import { Client, GatewayIntentBits, Partials } from "discord.js";
+import { Client, GatewayIntentBits, Partials, type Guild } from "discord.js";
 import { startApi } from "./api.js";
 import { env } from "./config.js";
 import { registerInteractions } from "./interactions.js";
@@ -23,20 +23,23 @@ registerInteractions(client, store);
 registerSecurity(client, store);
 registerVoiceSystem(client, store);
 registerStaffUpdates(client, store);
+const registrations = new Set<string>();
+async function registerGuildCommands(guild: Guild) {
+  if (registrations.has(guild.id)) return;
+  registrations.add(guild.id);
+  try {
+    const registered = await guild.commands.set(commands);
+    console.log(`Slash-команды зарегистрированы на сервере ${guild.name}: ${registered.size}`);
+  } catch (error) {
+    registrations.delete(guild.id);
+    console.error(`Не удалось зарегистрировать команды на сервере ${guild.id}:`, error);
+  }
+}
 client.once("clientReady", async ready => {
   console.log(`Discord: ${ready.user.tag} (${ready.guilds.cache.size} серверов)`);
-  const guilds = env.DISCORD_GUILD_ID
-    ? [await ready.guilds.fetch(env.DISCORD_GUILD_ID)]
-    : [...ready.guilds.cache.values()];
-  for (const guild of guilds) {
-    try {
-      const registered = await guild.commands.set(commands);
-      console.log(`Slash-команды зарегистрированы на сервере ${guild.name}: ${registered.size}`);
-    } catch (error) {
-      console.error(`Не удалось зарегистрировать команды на сервере ${guild.id}:`, error);
-    }
-  }
+  for (const guild of ready.guilds.cache.values()) await registerGuildCommands(guild);
 });
+client.on("guildCreate", guild => void registerGuildCommands(guild));
 
 const api = env.GMOD_API_SECRET ? startApi(store, env.HTTP_PORT, env.GMOD_API_SECRET) : undefined;
 if (!api) console.warn("GMOD_API_SECRET не задан: API статистики Garry's Mod отключён.");
