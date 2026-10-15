@@ -57,4 +57,5 @@ export interface DatabaseShape {
   servers: Record<string, ServerStat>;
   openTickets: Record<string, { ownerId: string; type: TicketTypeKey; createdAt: string }>;
   tempVoices: Record<string, TempVoice>;
+  staffPanels: Record<string, { guildId: string; channelId: string; roleIds: string[]; title: string }>;
 }

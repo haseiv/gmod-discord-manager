@@ -6,6 +6,7 @@ import { registerSecurity } from "./security.js";
 import { JsonStore } from "./store.js";
 import { registerVoiceSystem } from "./voice.js";
 import { commands } from "./commands.js";
+import { registerStaffUpdates } from "./staff.js";
 
 const store = new JsonStore(env.DATA_DIR);
 await store.init();
@@ -21,6 +22,7 @@ const client = new Client({
 registerInteractions(client, store);
 registerSecurity(client, store);
 registerVoiceSystem(client, store);
+registerStaffUpdates(client, store);
 client.once("clientReady", async ready => {
   console.log(`Discord: ${ready.user.tag} (${ready.guilds.cache.size} серверов)`);
   const guilds = env.DISCORD_GUILD_ID

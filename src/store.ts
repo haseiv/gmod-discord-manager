@@ -2,7 +2,7 @@ import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { DatabaseShape, GuildConfig, TicketTypeKey } from "./types.js";
 
-const defaults = (): DatabaseShape => ({ guilds: {}, servers: {}, openTickets: {}, tempVoices: {} });
+const defaults = (): DatabaseShape => ({ guilds: {}, servers: {}, openTickets: {}, tempVoices: {}, staffPanels: {} });
 
 export function defaultGuildConfig(): GuildConfig {
   return {
@@ -36,6 +36,7 @@ export class JsonStore {
       this.data.servers ??= {};
       this.data.openTickets ??= {};
       this.data.tempVoices ??= {};
+      this.data.staffPanels ??= {};
     }
     catch (error: unknown) {
       if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;

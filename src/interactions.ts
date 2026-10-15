@@ -6,6 +6,7 @@ import {
 import { JsonStore, isTicketKey } from "./store.js";
 import { reportControls, ticketControls, ticketPanel } from "./ui.js";
 import { voicePanel } from "./voice.js";
+import { staffEmbed } from "./staff.js";
 
 const privateReply = { flags: MessageFlags.Ephemeral } as const;
 
@@ -29,7 +30,7 @@ export function registerInteractions(client: Client, store: JsonStore) {
 }
 
 async function chatCommand(i: ChatInputCommandInteraction<"cached">, store: JsonStore) {
-  const sub = i.options.getSubcommand();
+  const sub = i.options.getSubcommand(false);
   const cfg = store.guild(i.guildId);
   if (i.commandName === "panel") {
     const panel = i.options.getString("panel", true);
@@ -89,7 +90,23 @@ async function chatCommand(i: ChatInputCommandInteraction<"cached">, store: Json
   if (i.commandName === "say") {
     const channel = i.options.getChannel("channel", true);
     if (!channel.isTextBased() || channel.isDMBased()) throw new Error("Нужен текстовый канал.");
-    await channel.send({ content: i.options.getString("text", true), allowedMentions: { parse: [] } });
+    if (sub === "text") {
+      await channel.send({ content: i.options.getString("text", true), allowedMentions: { parse: [] } });
+    } else if (sub === "embed") {
+      const rawColor = i.options.getString("color") ?? "#5865F2";
+      if (!/^#[0-9a-fA-F]{6}$/.test(rawColor)) throw new Error("Цвет должен быть в формате #RRGGBB.");
+      await channel.send({ embeds: [new EmbedBuilder().setColor(parseInt(rawColor.slice(1), 16))
+        .setTitle(i.options.getString("title", true)).setDescription(i.options.getString("description", true))], allowedMentions: { parse: [] } });
+    } else if (sub === "staff") {
+      await i.deferReply(privateReply);
+      const roleIds = [1, 2, 3, 4, 5].map(n => i.options.getRole(`role${n}`)?.id).filter((id): id is string => Boolean(id));
+      await i.guild.members.fetch();
+      const title = i.options.getString("title") ?? "Состав администрации";
+      const message = await channel.send({ embeds: [staffEmbed(i.guild, roleIds, title)], allowedMentions: { parse: [] } });
+      await store.mutate(db => { db.staffPanels[message.id] = { guildId: i.guildId, channelId: channel.id, roleIds, title }; });
+      await i.editReply(`Эмбед состава опубликован в ${channel} и будет обновляться при изменении ролей.`);
+      return;
+    }
     await i.reply({ content: `Сообщение отправлено в ${channel}.`, ...privateReply });
     return;
   }
