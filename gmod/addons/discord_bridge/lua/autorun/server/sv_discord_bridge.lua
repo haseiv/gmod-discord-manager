@@ -1,7 +1,7 @@
 -- Установите файл в garrysmod/addons/discord_bridge/lua/autorun/server/
 -- Значения задаются в server.cfg; не храните секрет в публичном репозитории.
 
-local apiUrl = CreateConVar("discord_bridge_url", "http://127.0.0.1:3000/api/v1/stats", FCVAR_PROTECTED, "Discord bot stats endpoint")
+local apiUrl = CreateConVar("discord_bridge_url", "", FCVAR_PROTECTED, "Discord bot stats endpoint")
 local apiSecret = CreateConVar("discord_bridge_secret", "", FCVAR_PROTECTED, "Discord bot API secret")
 local serverId = CreateConVar("discord_bridge_server_id", "darkrp-1", FCVAR_PROTECTED, "Stable server identifier")
 local serverName = CreateConVar("discord_bridge_server_name", "DarkRP #1", FCVAR_PROTECTED, "Displayed server name")
@@ -26,6 +26,10 @@ local function collectPlayer(ply)
 end
 
 local function upload()
+    if apiUrl:GetString() == "" then
+        print("[DiscordBridge] discord_bridge_url is empty; upload skipped")
+        return
+    end
     local secret = apiSecret:GetString()
     if secret == "" then
         print("[DiscordBridge] discord_bridge_secret is empty; upload skipped")
